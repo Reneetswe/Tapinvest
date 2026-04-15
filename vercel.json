@@ -6,7 +6,7 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "https://your-render-api-url.onrender.com/api/$1"
+      "dest": "https://tapinvest.onrender.com/$1"
     },
     {
       "handle": "filesystem"
