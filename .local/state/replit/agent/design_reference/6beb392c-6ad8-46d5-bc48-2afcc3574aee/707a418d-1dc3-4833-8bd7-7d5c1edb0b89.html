@@ -1,0 +1,564 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BSE Trading Platform - Local MetaTrader</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'sans': ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        'dark-bg': '#0F172A',
+                        'dark-card': '#1E293B',
+                        'dark-border': '#334155',
+                        'success': '#10B981',
+                        'danger': '#EF4444',
+                        'warning': '#F59E0B',
+                    }
+                }
+            },
+            darkMode: 'class'
+        }
+    </script>
+</head>
+<body class="bg-gray-50 dark:bg-dark-bg font-sans transition-colors duration-300">
+    <!-- @COMPONENT: AppHeader -->
+    <header class="bg-white dark:bg-dark-card shadow-sm border-b border-gray-200 dark:border-dark-border">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center">
+                        <i class="fas fa-chart-line text-2xl text-blue-600 mr-3"></i>
+                        <h1 class="text-xl font-bold text-gray-900 dark:text-white">BSE Trading Platform</h1>
+                    </div>
+                    <span class="text-sm text-gray-500 dark:text-gray-400">Local MetaTrader</span>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <!-- Market Status -->
+                    <div class="flex items-center space-x-2">
+                        <div class="w-2 h-2 bg-success rounded-full animate-pulse"></div>
+                        <span class="text-sm text-gray-600 dark:text-gray-300">Market Open</span>
+                    </div>
+                    
+                    <!-- Theme Toggle -->
+                    <button id="themeToggle" class="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                        <i class="fas fa-moon dark:hidden"></i>
+                        <i class="fas fa-sun hidden dark:block text-yellow-400"></i>
+                    </button>
+                    
+                    <!-- User Profile -->
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                            <span class="text-white text-sm font-medium" data-mock="true">JD</span>
+                        </div>
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300" data-mock="true">John Doe</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    <!-- @END_COMPONENT: AppHeader -->
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <!-- @COMPONENT: MainTradingInterface -->
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            
+            <!-- Left Panel: Chart and Market Data -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Broker Selection -->
+                <div class="bg-white dark:bg-dark-card rounded-xl shadow-sm border border-gray-200 dark:border-dark-border p-4">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Select Market / Broker</label>
+                    <select class="w-full px-3 py-2 border border-gray-300 dark:border-dark-border rounded-lg bg-white dark:bg-dark-bg text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option data-mock="true">Stockbrokers Botswana</option>
+                        <option data-mock="true">Imara Capital Securities</option>
+                        <option data-mock="true">Motswedi Securities</option>
+                    </select>
+                </div>
+
+                <!-- Stock Chart -->
+                <div class="bg-white dark:bg-dark-card rounded-xl shadow-sm border border-gray-200 dark:border-dark-border p-4">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Price Chart</h3>
+                        <div class="flex space-x-2">
+                            <button class="px-3 py-1 text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-md">1D</button>
+                            <button class="px-3 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-md">1W</button>
+                            <button class="px-3 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-md">1M</button>
+                            <button class="px-3 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-md">1Y</button>
+                        </div>
+                    </div>
+                    <div class="h-64">
+                        <canvas id="priceChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Market Overview -->
+                <div class="bg-white dark:bg-dark-card rounded-xl shadow-sm border border-gray-200 dark:border-dark-border p-4">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">BSE Market Overview</h3>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        <div class="text-center">
+                            <p class="text-xs text-gray-500 dark:text-gray-400">BSE DCI</p>
+                            <p class="text-lg font-bold text-gray-900 dark:text-white" data-mock="true">10,428.27</p>
+                            <p class="text-xs text-success">+3.77%</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Volume</p>
+                            <p class="text-lg font-bold text-gray-900 dark:text-white" data-mock="true">2.4M</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">BWP</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Market Cap</p>
+                            <p class="text-lg font-bold text-gray-900 dark:text-white" data-mock="true">654B</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">BWP</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Listed Co.</p>
+                            <p class="text-lg font-bold text-gray-900 dark:text-white" data-mock="true">30+</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Companies</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Center Panel: Stock Overview -->
+            <div class="space-y-6">
+                <!-- Stock Overview Card -->
+                <div class="bg-white dark:bg-dark-card rounded-xl shadow-sm border border-gray-200 dark:border-dark-border p-6">
+                    <h3 class="text-center text-lg font-semibold text-gray-900 dark:text-white mb-4">Stock Overview</h3>
+                    
+                    <div class="text-center mb-6">
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">LETSHEGO</h2>
+                        <div class="text-3xl font-bold text-gray-900 dark:text-white mb-2" data-bind="stock.price">1.05</div>
+                        <div class="border-t border-gray-200 dark:border-dark-border pt-3">
+                            <div class="flex justify-between items-center">
+                                <div class="text-center">
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Change</p>
+                                    <p class="font-semibold text-danger" data-bind="stock.change">-0.075</p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">High</p>
+                                </div>
+                                <div class="text-center">
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">% Change</p>
+                                    <p class="font-semibold text-danger" data-bind="stock.changePercent">-8.70%</p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">Low</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stock Selector -->
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Select Stock</label>
+                        <select id="stockSelector" class="w-full px-3 py-2 border border-gray-300 dark:border-dark-border rounded-lg bg-white dark:bg-dark-bg text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500">
+                            <option value="LETSHEGO" data-price="1.05" data-change="-0.075" data-change-percent="-8.70">LETSHEGO - BWP 1.05</option>
+                            <option value="ABSA" data-price="7.30" data-change="+0.40" data-change-percent="+5.49">ABSA Bank Botswana - BWP 7.30</option>
+                            <option value="CHOBE" data-price="17.55" data-change="+0.19" data-change-percent="+1.09">Chobe Holdings - BWP 17.55</option>
+                            <option value="CHOPPIES" data-price="0.70" data-change="+0.24" data-change-percent="+34.62">Choppies Enterprises - BWP 0.70</option>
+                            <option value="ENGEN" data-price="14.25" data-change="+0.12" data-change-percent="+0.85">Engen Botswana - BWP 14.25</option>
+                            <option value="FNB" data-price="5.30" data-change="+0.20" data-change-percent="+3.72">FNB Botswana - BWP 5.30</option>
+                        </select>
+                    </div>
+
+                    <!-- Company Info -->
+                    <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 text-xs">
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <span class="text-gray-500 dark:text-gray-400">Sector:</span>
+                                <span class="font-medium text-gray-900 dark:text-white ml-1" data-mock="true">Financials</span>
+                            </div>
+                            <div>
+                                <span class="text-gray-500 dark:text-gray-400">Market Cap:</span>
+                                <span class="font-medium text-gray-900 dark:text-white ml-1" data-mock="true">BWP 2.1B</span>
+                            </div>
+                            <div>
+                                <span class="text-gray-500 dark:text-gray-400">P/E Ratio:</span>
+                                <span class="font-medium text-gray-900 dark:text-white ml-1" data-mock="true">8.4</span>
+                            </div>
+                            <div>
+                                <span class="text-gray-500 dark:text-gray-400">Dividend:</span>
+                                <span class="font-medium text-gray-900 dark:text-white ml-1" data-mock="true">4.2%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Portfolio Summary -->
+                <div class="bg-white dark:bg-dark-card rounded-xl shadow-sm border border-gray-200 dark:border-dark-border p-4">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Portfolio Summary</h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600 dark:text-gray-400">Total Value</span>
+                            <span class="font-bold text-gray-900 dark:text-white" data-mock="true">BWP 45,230</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600 dark:text-gray-400">Day's P&L</span>
+                            <span class="font-bold text-success" data-mock="true">+BWP 1,240 (+2.8%)</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600 dark:text-gray-400">Total P&L</span>
+                            <span class="font-bold text-success" data-mock="true">+BWP 8,430 (+22.9%)</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600 dark:text-gray-400">Cash Balance</span>
+                            <span class="font-bold text-gray-900 dark:text-white" data-mock="true">BWP 12,500</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel: Trading -->
+            <div class="space-y-6">
+                <!-- Trade Panel -->
+                <div class="bg-white dark:bg-dark-card rounded-xl shadow-sm border border-gray-200 dark:border-dark-border p-4">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 text-center">Trade</h3>
+                    
+                    <!-- Buy/Sell Toggle -->
+                    <div class="grid grid-cols-2 gap-2 mb-4">
+                        <button id="buyBtn" class="trade-btn-active px-4 py-2 bg-success text-white rounded-lg font-medium transition-colors">
+                            Buy
+                        </button>
+                        <button id="sellBtn" class="trade-btn-inactive px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium transition-colors">
+                            Sell
+                        </button>
+                    </div>
+
+                    <!-- Trade Form -->
+                    <form class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Quantity</label>
+                            <input type="number" value="100" class="w-full px-3 py-2 border border-gray-300 dark:border-dark-border rounded-lg bg-white dark:bg-dark-bg text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500" data-mock="true">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Price</label>
+                            <input type="number" step="0.01" value="1.05" class="w-full px-3 py-2 border border-gray-300 dark:border-dark-border rounded-lg bg-white dark:bg-dark-bg text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500" data-bind="selectedStock.price">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Order Type</label>
+                            <select class="w-full px-3 py-2 border border-gray-300 dark:border-dark-border rounded-lg bg-white dark:bg-dark-bg text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500">
+                                <option>Market Order</option>
+                                <option>Limit Order</option>
+                                <option>Stop Loss</option>
+                            </select>
+                        </div>
+
+                        <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="text-gray-600 dark:text-gray-400">Estimated Cost:</span>
+                                <span class="font-medium text-gray-900 dark:text-white" data-mock="true">BWP 105.00</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600 dark:text-gray-400">Commission:</span>
+                                <span class="font-medium text-gray-900 dark:text-white" data-mock="true">BWP 2.50</span>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors" data-event="click:placeOrder">
+                            Place Order
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="bg-white dark:bg-dark-card rounded-xl shadow-sm border border-gray-200 dark:border-dark-border p-4">
+                    <h4 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">Quick Actions</h4>
+                    <div class="space-y-2">
+                        <button class="w-full text-left px-3 py-2 text-sm bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                            <i class="fas fa-bell mr-2 text-gray-400"></i>
+                            Set Price Alert
+                        </button>
+                        <button class="w-full text-left px-3 py-2 text-sm bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                            <i class="fas fa-chart-bar mr-2 text-gray-400"></i>
+                            Technical Analysis
+                        </button>
+                        <button class="w-full text-left px-3 py-2 text-sm bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                            <i class="fas fa-newspaper mr-2 text-gray-400"></i>
+                            Company News
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Market Status -->
+                <div class="bg-white dark:bg-dark-card rounded-xl shadow-sm border border-gray-200 dark:border-dark-border p-4">
+                    <h4 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">Market Status</h4>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600 dark:text-gray-400">BSE Status:</span>
+                            <span class="text-success font-medium">Open</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600 dark:text-gray-400">Trading Hours:</span>
+                            <span class="text-gray-900 dark:text-white">10:00 - 14:00</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600 dark:text-gray-400">Time to Close:</span>
+                            <span class="text-gray-900 dark:text-white" data-mock="true">2h 45m</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Section: Orders and Portfolio -->
+        <div class="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Open Orders & Trade History -->
+            <div class="bg-white dark:bg-dark-card rounded-xl shadow-sm border border-gray-200 dark:border-dark-border">
+                <div class="border-b border-gray-200 dark:border-dark-border">
+                    <nav class="flex">
+                        <button class="px-6 py-3 text-sm font-medium text-blue-600 border-b-2 border-blue-600">Open Orders</button>
+                        <button class="px-6 py-3 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">Trade History</button>
+                    </nav>
+                </div>
+                
+                <div class="p-4">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="border-b border-gray-200 dark:border-dark-border">
+                                    <th class="text-left py-2 text-gray-600 dark:text-gray-400 font-medium">Order</th>
+                                    <th class="text-left py-2 text-gray-600 dark:text-gray-400 font-medium">Type</th>
+                                    <th class="text-left py-2 text-gray-600 dark:text-gray-400 font-medium">Qty</th>
+                                    <th class="text-left py-2 text-gray-600 dark:text-gray-400 font-medium">Price</th>
+                                    <th class="text-left py-2 text-gray-600 dark:text-gray-400 font-medium">Status</th>
+                                    <th class="text-left py-2 text-gray-600 dark:text-gray-400 font-medium">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- @MAP: orders.map(order => ( -->
+                                <tr class="border-b border-gray-100 dark:border-gray-700" data-mock="true">
+                                    <td class="py-3 text-gray-900 dark:text-white">LETSHEGO</td>
+                                    <td class="py-3 text-success">Buy</td>
+                                    <td class="py-3 text-gray-900 dark:text-white">100</td>
+                                    <td class="py-3 text-gray-900 dark:text-white">1.05</td>
+                                    <td class="py-3"><span class="px-2 py-1 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 rounded-full text-xs">Pending</span></td>
+                                    <td class="py-3">
+                                        <button class="text-red-600 hover:text-red-800 text-xs" data-event="click:cancelOrder">Cancel</button>
+                                    </td>
+                                </tr>
+                                <tr class="border-b border-gray-100 dark:border-gray-700" data-mock="true">
+                                    <td class="py-3 text-gray-900 dark:text-white">ABSA</td>
+                                    <td class="py-3 text-danger">Sell</td>
+                                    <td class="py-3 text-gray-900 dark:text-white">50</td>
+                                    <td class="py-3 text-gray-900 dark:text-white">7.30</td>
+                                    <td class="py-3"><span class="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-xs">Partial</span></td>
+                                    <td class="py-3">
+                                        <button class="text-red-600 hover:text-red-800 text-xs" data-event="click:cancelOrder">Cancel</button>
+                                    </td>
+                                </tr>
+                                <!-- @END_MAP )) -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Portfolio Holdings -->
+            <div class="bg-white dark:bg-dark-card rounded-xl shadow-sm border border-gray-200 dark:border-dark-border">
+                <div class="border-b border-gray-200 dark:border-dark-border p-4">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Portfolio Holdings</h3>
+                </div>
+                
+                <div class="p-4">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="border-b border-gray-200 dark:border-dark-border">
+                                    <th class="text-left py-2 text-gray-600 dark:text-gray-400 font-medium">Stock</th>
+                                    <th class="text-left py-2 text-gray-600 dark:text-gray-400 font-medium">Qty</th>
+                                    <th class="text-left py-2 text-gray-600 dark:text-gray-400 font-medium">Avg Price</th>
+                                    <th class="text-left py-2 text-gray-600 dark:text-gray-400 font-medium">Current</th>
+                                    <th class="text-left py-2 text-gray-600 dark:text-gray-400 font-medium">P&L</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- @MAP: holdings.map(holding => ( -->
+                                <tr class="border-b border-gray-100 dark:border-gray-700" data-mock="true">
+                                    <td class="py-3 text-gray-900 dark:text-white font-medium">LETSHEGO</td>
+                                    <td class="py-3 text-gray-900 dark:text-white">200</td>
+                                    <td class="py-3 text-gray-900 dark:text-white">1.15</td>
+                                    <td class="py-3 text-gray-900 dark:text-white">1.05</td>
+                                    <td class="py-3 text-danger">-20.00 (-8.70%)</td>
+                                </tr>
+                                <tr class="border-b border-gray-100 dark:border-gray-700" data-mock="true">
+                                    <td class="py-3 text-gray-900 dark:text-white font-medium">ABSA</td>
+                                    <td class="py-3 text-gray-900 dark:text-white">100</td>
+                                    <td class="py-3 text-gray-900 dark:text-white">6.90</td>
+                                    <td class="py-3 text-gray-900 dark:text-white">7.30</td>
+                                    <td class="py-3 text-success">+40.00 (+5.80%)</td>
+                                </tr>
+                                <tr class="border-b border-gray-100 dark:border-gray-700" data-mock="true">
+                                    <td class="py-3 text-gray-900 dark:text-white font-medium">CHOBE</td>
+                                    <td class="py-3 text-gray-900 dark:text-white">75</td>
+                                    <td class="py-3 text-gray-900 dark:text-white">17.20</td>
+                                    <td class="py-3 text-gray-900 dark:text-white">17.55</td>
+                                    <td class="py-3 text-success">+26.25 (+2.03%)</td>
+                                </tr>
+                                <!-- @END_MAP )) -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: MainTradingInterface -->
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="notification" class="fixed top-20 right-4 bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-lg shadow-lg p-4 transform translate-x-full transition-transform duration-300 z-50">
+        <div class="flex items-center space-x-2">
+            <div class="w-4 h-4 bg-success rounded-full"></div>
+            <span class="text-sm font-medium text-gray-900 dark:text-white">Order placed successfully</span>
+        </div>
+    </div>
+
+    <script>
+        // TODO: Implement business logic, API calls, and state management
+        
+        (function() {
+            // Theme Toggle
+            const themeToggle = document.getElementById('themeToggle');
+            const html = document.documentElement;
+            
+            // Check for saved theme preference or default to 'light'
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            html.classList.toggle('dark', savedTheme === 'dark');
+            
+            themeToggle.addEventListener('click', () => {
+                html.classList.toggle('dark');
+                localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
+            });
+
+            // Stock Selection
+            const stockSelector = document.getElementById('stockSelector');
+            const stockOverviewElements = {
+                name: document.querySelector('h2'),
+                price: document.querySelector('.text-3xl'),
+                change: document.querySelector('[data-bind="stock.change"]'),
+                changePercent: document.querySelector('[data-bind="stock.changePercent"]')
+            };
+
+            stockSelector.addEventListener('change', function() {
+                const option = this.options[this.selectedIndex];
+                const price = option.getAttribute('data-price');
+                const change = option.getAttribute('data-change');
+                const changePercent = option.getAttribute('data-change-percent');
+                
+                stockOverviewElements.name.textContent = this.value;
+                stockOverviewElements.price.textContent = price;
+                stockOverviewElements.change.textContent = change;
+                stockOverviewElements.changePercent.textContent = changePercent;
+                
+                // Update price input in trade form
+                document.querySelector('input[data-bind="selectedStock.price"]').value = price;
+                
+                // Update change color
+                const isPositive = change.startsWith('+');
+                stockOverviewElements.change.className = `font-semibold ${isPositive ? 'text-success' : 'text-danger'}`;
+                stockOverviewElements.changePercent.className = `font-semibold ${isPositive ? 'text-success' : 'text-danger'}`;
+            });
+
+            // Buy/Sell Toggle
+            const buyBtn = document.getElementById('buyBtn');
+            const sellBtn = document.getElementById('sellBtn');
+            
+            buyBtn.addEventListener('click', () => {
+                buyBtn.className = 'trade-btn-active px-4 py-2 bg-success text-white rounded-lg font-medium transition-colors';
+                sellBtn.className = 'trade-btn-inactive px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium transition-colors';
+            });
+            
+            sellBtn.addEventListener('click', () => {
+                sellBtn.className = 'trade-btn-active px-4 py-2 bg-danger text-white rounded-lg font-medium transition-colors';
+                buyBtn.className = 'trade-btn-inactive px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium transition-colors';
+            });
+
+            // Mock Price Chart
+            const ctx = document.getElementById('priceChart').getContext('2d');
+            const priceData = [1.20, 1.18, 1.22, 1.15, 1.19, 1.16, 1.21, 1.17, 1.14, 1.12, 1.08, 1.05];
+            const labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'LETSHEGO Price',
+                        data: priceData,
+                        borderColor: '#EF4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            grid: {
+                                color: html.classList.contains('dark') ? '#374151' : '#E5E7EB'
+                            },
+                            ticks: {
+                                color: html.classList.contains('dark') ? '#9CA3AF' : '#6B7280'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: html.classList.contains('dark') ? '#374151' : '#E5E7EB'
+                            },
+                            ticks: {
+                                color: html.classList.contains('dark') ? '#9CA3AF' : '#6B7280'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Mock notification system
+            function showNotification(message, type = 'success') {
+                const notification = document.getElementById('notification');
+                notification.querySelector('span').textContent = message;
+                notification.querySelector('.w-4').className = `w-4 h-4 rounded-full ${type === 'success' ? 'bg-success' : 'bg-danger'}`;
+                
+                notification.classList.remove('translate-x-full');
+                
+                setTimeout(() => {
+                    notification.classList.add('translate-x-full');
+                }, 3000);
+            }
+
+            // Form submission
+            document.querySelector('form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                showNotification('Order placed successfully');
+            });
+
+            // Mock real-time price updates
+            setInterval(() => {
+                const priceElement = document.querySelector('.text-3xl');
+                const currentPrice = parseFloat(priceElement.textContent);
+                const change = (Math.random() - 0.5) * 0.02; // Random change between -0.01 and +0.01
+                const newPrice = Math.max(0.1, currentPrice + change);
+                
+                priceElement.textContent = newPrice.toFixed(2);
+                
+                // Update input field
+                document.querySelector('input[data-bind="selectedStock.price"]').value = newPrice.toFixed(2);
+            }, 5000);
+        })();
+    </script>
+</body>
+</html>
