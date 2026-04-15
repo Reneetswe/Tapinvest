@@ -22,6 +22,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Demo login - creates a demo user and logs them in automatically
+  app.post('/api/auth/demo', async (req: any, res) => {
+    try {
+      const demoUserId = `demo_${Date.now()}`;
+      const demoUsername = `demo_user_${Math.floor(Math.random() * 10000)}`;
+      
+      // Create demo user
+      const demoUser = await storage.createUser({
+        id: demoUserId,
+        username: demoUsername,
+        email: `${demoUsername}@demo.com`,
+        password: 'demo_password_not_used',
+        fullName: 'Demo Trader',
+        role: 'trader',
+        twoFactorEnabled: false,
+        twoFactorSecret: null,
+      });
+
+      // Create demo portfolio
+      const portfolio = await storage.createPortfolio({
+        userId: demoUserId,
+        name: "Demo Trading Portfolio",
+        cashBalance: "100000", // BWP 100,000 demo balance
+      });
+
+      // Log in the demo user
+      req.login(demoUser, (err: any) => {
+        if (err) {
+          console.error("Demo login error:", err);
+          return res.status(500).json({ message: "Failed to login demo user" });
+        }
+        res.json({ success: true, user: demoUser, portfolioId: portfolio.id });
+      });
+    } catch (error) {
+      console.error("Error creating demo user:", error);
+      res.status(500).json({ message: "Failed to create demo account" });
+    }
+  });
+
   // Initialize default data
   app.post('/api/initialize', isAuthenticated, async (req: any, res) => {
     try {

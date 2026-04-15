@@ -1,9 +1,21 @@
 import "dotenv/config";
 import express, { type Request, Response, NextFunction } from "express";
+import cors from "cors";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
+
+// CORS - Allow Vercel frontend
+app.use(cors({
+  origin: process.env.NODE_ENV === "production" 
+    ? ["https://tapinvest.vercel.app", "https://tapinvest-git-main-reneetswe.vercel.app"] 
+    : "http://localhost:5173",
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 

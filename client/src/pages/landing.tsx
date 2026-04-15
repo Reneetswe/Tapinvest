@@ -13,9 +13,27 @@ export default function Landing() {
     window.location.href = "/signup";
   };
 
-  // Demo login (for testing - bypasses password)
-  const handleDemoLogin = () => {
-    window.location.href = `${window.location.origin}/api/login`;
+  // Demo login (for testing - creates demo account)
+  const handleDemoLogin = async () => {
+    try {
+      const response = await fetch('/api/auth/demo', {
+        method: 'POST',
+        credentials: 'include',
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Demo login success:', data);
+        // Redirect to dashboard
+        window.location.href = '/dashboard';
+      } else {
+        console.error('Demo login failed');
+        alert('Failed to enter demo mode. Please try signing up instead.');
+      }
+    } catch (error) {
+      console.error('Demo login error:', error);
+      alert('Network error. Please try again.');
+    }
   };
 
   return (
