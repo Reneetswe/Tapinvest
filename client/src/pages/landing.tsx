@@ -4,6 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp, Shield, Globe, BarChart3, PieChart, Lock, Zap } from "lucide-react";
 
+// API base URL for direct backend calls
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
+
 export default function Landing() {
   const goToSignIn = () => {
     window.location.href = "/signin";
@@ -16,7 +19,7 @@ export default function Landing() {
   // Demo login (for testing - creates demo account)
   const handleDemoLogin = async () => {
     try {
-      const response = await fetch('/api/auth/demo', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/demo`, {
         method: 'POST',
         credentials: 'include',
       });
